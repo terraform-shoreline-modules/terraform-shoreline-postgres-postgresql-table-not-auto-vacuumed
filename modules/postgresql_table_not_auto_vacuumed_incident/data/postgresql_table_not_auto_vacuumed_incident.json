@@ -1,0 +1,154 @@
+{
+  "name": "postgresql_table_not_auto_vacuumed_incident",
+  "description": "This incident type refers to situations where a Postgresql table has not been vacuumed automatically, causing potential performance issues. Vacuuming is a process that frees up space and improves performance by removing dead rows and updating statistics. Failure to vacuum a table can result in degraded database performance and slow query execution times. This incident type requires immediate attention to prevent further performance degradation and optimize database performance.",
+  "params": [
+    {
+      "name": "DATABASE_USER",
+      "value": ""
+    },
+    {
+      "name": "DATABASE_PASSWORD",
+      "value": ""
+    },
+    {
+      "name": "DATABASE_NAME",
+      "value": ""
+    },
+    {
+      "name": "TABLE_NAME",
+      "value": ""
+    },
+    {
+      "name": "DATABASE_HOST",
+      "value": ""
+    },
+    {
+      "name": "HOST_NAME",
+      "value": ""
+    },
+    {
+      "name": "K8S_CLUSTER_NAME",
+      "value": ""
+    },
+    {
+      "name": "NAMESPACE",
+      "value": ""
+    }
+  ],
+  "cells": [
+    {
+      "name": "cell_1",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Postgresql table not auto vacuumed incident\nThis incident type refers to situations where a Postgresql table has not been vacuumed automatically, causing potential performance issues. Vacuuming is a process that frees up space and improves performance by removing dead rows and updating statistics. Failure to vacuum a table can result in degraded database performance and slow query execution times. This incident type requires immediate attention to prevent further performance degradation and optimize database performance."
+    },
+    {
+      "name": "cell_2",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check if vacuum is enabled on the specific table"
+    },
+    {
+      "name": "cell_3",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `sudo -u postgres psql -c \"SELECT relname, n_live_tup, last_vacuum, last_analyze FROM pg_stat_user_tables WHERE relname='${TABLE_NAME}'\"`"
+    },
+    {
+      "name": "cell_4",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check if auto-vacuum is enabled on the specific table"
+    },
+    {
+      "name": "cell_5",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `sudo -u postgres psql -c \"SELECT relname, autovacuum_enabled, autovacuum_vacuum_scale_factor, autovacuum_analyze_scale_factor FROM pg_stat_user_tables WHERE relname='${TABLE_NAME}'\"`"
+    },
+    {
+      "name": "cell_6",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check the vacuum and analyze status of the specific table"
+    },
+    {
+      "name": "cell_7",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `sudo -u postgres psql -c \"SELECT relname, last_vacuum, last_autovacuum, last_analyze, last_autoanalyze FROM pg_stat_user_tables WHERE relname='${TABLE_NAME}'\"`"
+    },
+    {
+      "name": "cell_8",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check the vacuum and analyze details of the specific table"
+    },
+    {
+      "name": "cell_9",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `sudo -u postgres psql -c \"SELECT * FROM pgstattuple('${TABLE_NAME}')\"`"
+    },
+    {
+      "name": "cell_10",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Force an analyze on the specific table"
+    },
+    {
+      "name": "cell_11",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `sudo -u postgres psql -c \"ANALYZE ${TABLE_NAME}\"`"
+    },
+    {
+      "name": "cell_12",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## The autovacuum process may not be enabled or configured properly in the database, causing tables to not be vacuumed automatically."
+    },
+    {
+      "name": "cell_13",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "host | host_name=$HOST_NAME | invoke_check_autovacuum($DATABASE_USER, $DATABASE_PASSWORD, $DATABASE_NAME, $DATABASE_HOST)"
+    },
+    {
+      "name": "cell_14",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Force a vacuum on the specific table"
+    },
+    {
+      "name": "cell_15",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "host | host_name=$HOST_NAME | invoke_vacuum_table($TABLE_NAME)"
+    },
+    {
+      "name": "cell_16",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Manually vacuum the affected table(s) to free up space and update statistics using the VACUUM command."
+    },
+    {
+      "name": "cell_17",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "host | host_name=$HOST_NAME | invoke_vacuum_table($DATABASE_NAME, $TABLE_NAME)"
+    },
+    {
+      "name": "cell_18",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Adjust the automatic vacuum process settings to ensure that it runs more frequently or with different parameters that are more appropriate for your database workload."
+    },
+    {
+      "name": "cell_19",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "host | host_name=$HOST_NAME | invoke_vacuum_settings_adjust($DATABASE_USER, $DATABASE_PASSWORD, $DATABASE_NAME)"
+    }
+  ]
+}
